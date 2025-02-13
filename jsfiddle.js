@@ -1,7 +1,7 @@
 // jsfiddle.net - requires resource
 // https://cdnjs.cloudflare.com/ajax/libs/d3/7.0.0/d3.min.js
 
-const numberOfMarkers = 500; // Specify the number of markers here
+const numberOfMarkers = 300; // Specify the number of markers here
 
 const data = {
   name: "",
@@ -39,6 +39,12 @@ layerRadii.forEach((radius, index) => {
     .attr("fill", layerColors[index]);
 });
 
+// Initialize the lookup table with arrays for each layer
+const lookupTable = {};
+layerRadii.forEach((_, index) => {
+  lookupTable[index] = [];
+});
+
 // Draw the parent node and its children
 const node = svg.selectAll("g")
   .data(root.descendants())
@@ -51,8 +57,35 @@ node.append("circle")
     const isValid = !isNearBorder(d, layerRadii);
 
     // Set fill color based on proximity to layer radii
-    return d.children ? "#00000000" : (isValid ? "#0000ff33" : "#ff000033");
+    if (isValid) {
+      // Determine the layer index based on the distance
+      const distanceToCenter = Math.sqrt(Math.pow(d.x - width / 2, 2) + Math.pow(d.y - height / 2, 2));
+      let layerIndex = -1;
+      for (let i = layerRadii.length; i >= 0; i--) {
+        if (distanceToCenter < layerRadii[i]) {
+          layerIndex = layerRadii.length - i - 1;
+          break;
+        }
+      }
+
+      // Update the lookup table
+      lookupTable[layerIndex].push({ x: d.x, y: d.y });
+      return "#0000ff33"; // Valid node color
+    } else {
+      return "#ff000033"; // Invalid node color
+    }
   });
+
+console.log(lookupTable[0]);
+
+// Test the result
+lookupTable[0].forEach(point => {
+  svg.append("circle")
+    .attr("cx", point.x)
+    .attr("cy", point.y)
+    .attr("r", 3)
+    .attr("fill", "black");
+});
 
 // Draw the horizontal line
 svg.append("line")
