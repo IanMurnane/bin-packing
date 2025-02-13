@@ -1,9 +1,10 @@
 // jsfiddle.net - requires resource
 // https://cdnjs.cloudflare.com/ajax/libs/d3/7.0.0/d3.min.js
 
-const numberOfMarkers = 600; // Specify the number of markers here
+const numberOfMarkers = 850; // Specify the number of markers here
 
 const data = {
+	name: "",
   children: Array.from({ length: numberOfMarkers }, (_, i) => ({
     name: i,
     size: 1,
@@ -27,9 +28,7 @@ const root = d3.hierarchy(data)
 pack(root);
 
 const svg = d3.select("body").append("svg")
-  .attr("viewBox", `0 0 ${width} ${height}`)
-  .style("font", "10px sans-serif")
-  .style("user-select", "none");
+  .attr("viewBox", `0 0 ${width} ${height}`);
 
 // Draw the inner layers
 layerRadii.forEach((radius, index) => {
@@ -48,4 +47,18 @@ const node = svg.selectAll("g")
 
 node.append("circle")
   .attr("r", d => d.r)
-  .attr("fill", d => d.children ? "#00000000" : "#0000ff33");
+  .attr("fill", d => {
+    const isValid = !isNearRadius(d, layerRadii);
+
+    // Set fill color based on proximity to layer radii
+    return d.children ? "#00000000" : (isValid ? "#0000ff33" : "#ff000033");
+  });
+
+// Function to check if a node is near any layer radius
+function isNearRadius(node, layerRadii) {
+  const distanceToCenter = Math.sqrt(Math.pow(node.x - width / 2, 2) + Math.pow(node.y - height / 2, 2));
+  const tolerance = node.r;
+  return layerRadii.some(radius =>
+    distanceToCenter >= (radius - tolerance) && distanceToCenter <= (radius + tolerance)
+  );
+}
