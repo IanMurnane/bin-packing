@@ -1,24 +1,20 @@
 // jsfiddle.net - requires resource
 // https://cdnjs.cloudflare.com/ajax/libs/d3/7.0.0/d3.min.js
 
-const numberOfMarkers = 200; // Specify the number of markers here
+const numberOfMarkers = 600; // Specify the number of markers here
 
 const data = {
-  name: "root",
-  children: [
-    {
-      name: "Inner Node",
-      size: 100, // Size of the inner node
-    },
-    ...Array.from({ length: numberOfMarkers }, (_, i) => ({
-      name: i,
-      size: 1,
-    })),
-  ],
+  children: Array.from({ length: numberOfMarkers }, (_, i) => ({
+    name: i,
+    size: 1,
+  })),
 };
 
 const width = 600;
 const height = 600;
+
+const layerRadii = [300, 240, 180, 120, 60];
+const layerColors = ["#E4E4E4", "#C9C9C9", "#AEAEAE", "#939393", "#787878"];
 
 const pack = d3.pack()
   .size([width, height])
@@ -35,6 +31,16 @@ const svg = d3.select("body").append("svg")
   .style("font", "10px sans-serif")
   .style("user-select", "none");
 
+// Draw the inner layers
+layerRadii.forEach((radius, index) => {
+  svg.append("circle")
+    .attr("cx", width / 2)
+    .attr("cy", height / 2)
+    .attr("r", radius)
+    .attr("fill", layerColors[index]);
+});
+
+// Draw the parent node and its children
 const node = svg.selectAll("g")
   .data(root.descendants())
   .enter().append("g")
@@ -42,9 +48,4 @@ const node = svg.selectAll("g")
 
 node.append("circle")
   .attr("r", d => d.r)
-  .attr("fill", d => d.children ? "#ccc" : "#69b3a2");
-
-node.append("text")
-  .attr("dy", ".35em")
-  .attr("text-anchor", "middle")
-  .text(d => d.children ? d.data.name : d.data.name);
+  .attr("fill", d => d.children ? "#00000000" : "#0000ff33");
